@@ -18,7 +18,7 @@ server.on('request', (req, res) => {
     res.end('Not implemented');
   }
 
-  if (pathname.indexOf('/') > 0) {
+  if (pathname.indexOf('/') >= 0) {
     // console.log('directory is not supported');
     res.statusCode = 400;
     return res.end('directory is not supported');
@@ -122,8 +122,6 @@ function writeFile(req, res, filepath) {
               console.log(`delete error ${filepath}`);
             else
               console.log(`deleted ${filepath}`);
-
-            //res.end('error');
           });
         });
       }, 0);

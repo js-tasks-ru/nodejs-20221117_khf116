@@ -10,7 +10,7 @@ server.on('request', (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = url.pathname.slice(1);
 
-  if (pathname.indexOf('/') > 0) {
+  if (pathname.indexOf('/') >= 0) {
     res.statusCode = 400;
     return res.end('directory is not support');
   }
