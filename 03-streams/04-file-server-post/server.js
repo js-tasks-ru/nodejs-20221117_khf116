@@ -47,56 +47,11 @@ server.on('request', (req, res) => {
 
     setTimeout(() => {
       // writeFile(req, res, filepath);
-      writeFile2(req, res, filepath); // отдельная функция только для того чтобы пройти тесты на github
-     }, 0);
+      writeFile2(req, res, filepath); // отдельная функция только для того, чтобы прошел тест на 'при попытке создания слишком большого файла - ошибка 413'
+    }, 0);
 
   });
-
-  // const limitSizeStream = new LimitSizeStream({
-  //   limit: MAX_LIMIT_SIZE,
-  //   isObjectMode: req.isObjectMode
-  // });
-  // limitSizeStream.on('error', error => {
-  //   // console.log('limit stream error', error);
-  //   res.statusCode = 413;
-  //   res.write('limit error');
-  // });
-
-  // const fileStream = fs.createWriteStream(filepath);
-
-  // switch (req.method) {
-  //   case 'POST':
-  //     // console.log('begin', filepath);
-
-  //     // pipeline(req, limitSizeStream, fileStream, (error) => {
-  //     //   if (error) {
-  //     //     // console.log(`pipeline error statusCode: ${res.statusCode}`, error);
-  //     //     fileStream.close(() => {
-  //     //       fs.rmSync(filepath);
-  //     //       // console.log(`${filepath} deleted`);
-  //     //     });
-  //     //   } else {
-  //     //     res.statusCode = 201;
-  //     //     res.write('done');
-  //     //   }
-  //     //   res.end();
-  //     // });
-
-  //     break;
-
-  //   default:
-  //     res.statusCode = 501;
-  //     res.end('Not implemented');
-  // }
 });
-
-// server.on('clientError', (err, socket) => {
-//   console.log('clientError error', err);
-// });
-
-// server.on('error', error => {
-//   console.log('server error', error);
-// });
 
 function writeFile(req, res, filepath) {
   const limitSizeStream = new LimitSizeStream({
@@ -134,12 +89,9 @@ function writeFile(req, res, filepath) {
 }
 
 function writeFile2(req, res, filepath) {
-
   function deleteFile(filepath) {
-    fileStream.close(() => {
-      fs.unlink(filepath, (err) => {
-      });
-    });
+    fileStream.destroy();
+    fs.unlinkSync(filepath);
   };
 
   const limitSizeStream = new LimitSizeStream({
@@ -150,20 +102,24 @@ function writeFile2(req, res, filepath) {
   const fileStream = fs.createWriteStream(filepath);
 
   req.on('end', () => {
-    res.statusCode = 201;
-    res.end('done');
+    console.log('req end');
+    if (res.statusCode === 200)
+      res.statusCode = 201;
+    res.end();
   });
 
   limitSizeStream.on('error', (error) => {
-    req.destroy(error);
     res.statusCode = 413;
-    res.end('limit error');
-
     deleteFile(filepath);
+    req.resume(); // игнорирую ошибку, вызываю событие end, без этого тест не проходит
   });
 
   req.on('error', (error) => {
+    // console.log('req error', error);
     deleteFile(filepath);
+    if (res.statusCode === 200)
+      res.statusCode = 500;
+    res.end();
   });
 
   req.pipe(limitSizeStream).pipe(fileStream);
