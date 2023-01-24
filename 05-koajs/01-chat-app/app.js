@@ -36,7 +36,7 @@ router.get('/subscribe', logger, async (ctx, next) => {
     ctx.req.on('close', () => {
       clients.splice(clients.indexOf(ctx), 1);
       ctx.body = 'connection closed';
-      reject;
+      resolve();
     });
   });
 
