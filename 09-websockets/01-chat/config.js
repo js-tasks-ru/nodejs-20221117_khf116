@@ -1,8 +1,8 @@
 module.exports = {
   mongodb: {
     uri: (process.env.NODE_ENV === 'test') ?
-      'mongodb://localhost/9-module-1-task' :
-      'mongodb://localhost/any-shop',
+      'mongodb://127.0.0.1:27017/9-module-1-task' :
+      'mongodb://127.0.0.1:27017/any-shop',
   },
   crypto: {
     iterations: (process.env.NODE_ENV === 'test' ? 1 : 12000),
